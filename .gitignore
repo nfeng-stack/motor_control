@@ -1,0 +1,7 @@
+built/
+en_config/
+.vscode/
+*.d
+*.o
+.DS_Store
+
