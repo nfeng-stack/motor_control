@@ -110,7 +110,7 @@
 // </c>
 // <c1>using tiny size of memory
 //  <i>using tiny size of memory
-//#define RT_USING_TINY_SIZE
+#define RT_USING_TINY_SIZE
 // </c>
 // </h>
 
