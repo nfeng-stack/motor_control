@@ -73,15 +73,15 @@ void rt_hw_console_output(const char *str)
 	{
 		if (*(str + i) == '\n')
 		{
-			LL_USART_TransmitData8(USART1, a);
-			while (!LL_USART_IsActiveFlag_TXE(USART1))
+			LL_USART_TransmitData8(USART3, a);
+			while (!LL_USART_IsActiveFlag_TXE(USART3))
 				;
 		}
-		LL_USART_TransmitData8(USART1, *(str + i));
-		while (!LL_USART_IsActiveFlag_TXE(USART1))
+		LL_USART_TransmitData8(USART3, *(str + i));
+		while (!LL_USART_IsActiveFlag_TXE(USART3))
 			;
 	}
-	while (!LL_USART_IsActiveFlag_TC(USART1))
+	while (!LL_USART_IsActiveFlag_TC(USART3))
 		;
 }
 #define RING_BUFFER_SIZE	256
@@ -91,38 +91,44 @@ typedef struct ringbuf
 	uint8_t write_position ;
 	uint8_t read_position;
 }ringbuf,ringbuf_t;
+struct rt_semaphore static fish_semphoer = {0} ;
+static rt_sem_t fish_sem_p = &fish_semphoer;
+int fish_sem_init(void)
+{
+	rt_sem_init(fish_sem_p,"fish_sem",0,RT_IPC_FLAG_FIFO);
+	return 0;
+}
+INIT_APP_EXPORT(fish_sem_init);
 ringbuf fish_bufer = {{0},0,0};
 char write_bufer(char *src ,uint8_t count)
 {
-	uint8_t len = RING_BUFFER_SIZE - fish_bufer.write_position + fish_bufer.read_position ;
+	uint16_t len = RING_BUFFER_SIZE - fish_bufer.write_position + fish_bufer.read_position ;
 	if (count > len ) return -1;
 	while (count--) fish_bufer.bufer[fish_bufer.write_position++] = *src++;
 	return 0;
 }
 char read_bufer()
 {
-	while(fish_bufer.read_position == fish_bufer.write_position) {
-		rt_thread_delay(10);
+	if (fish_bufer.read_position == fish_bufer.write_position) {
+		rt_sem_take(fish_sem_p,RT_WAITING_FOREVER);	
 	}
 	return (char)fish_bufer.bufer[fish_bufer.read_position++];
 }
 uint8_t rx_buff[64];
-void USART1_IRQHandler(void)
+void USART3_IRQHandler(void)
 {
-    if (LL_USART_IsActiveFlag_IDLE(USART1))
+    if (LL_USART_IsActiveFlag_IDLE(USART3))
     {
-        LL_USART_ClearFlag_IDLE(USART1);
+        LL_USART_ClearFlag_IDLE(USART3);
         /*接收数据处理*/
-        uint8_t size = sizeof(rx_buff) - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_5);
-		write_bufer((char *)rx_buff,size);
+        uint8_t size = sizeof(rx_buff) - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_3);
+		write_bufer((char *)&rx_buff,size);
+		rt_sem_release(fish_sem_p);
         rt_memset(rx_buff, 0, size);
-		rt_kprintf("hh");
-		rt_kprintf("nihao%c",fish_bufer.bufer[0]);
-		rt_kprintf("jj");
-        LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_5);
-        LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_5, (uint32_t)rx_buff);
-        LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_5, sizeof(rx_buff));
-        LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_5);
+        LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_3);
+        LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_3, (uint32_t)rx_buff);
+        LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_3, sizeof(rx_buff));
+        LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_3);
     }
 }
 char rt_hw_console_getchar(void) 
