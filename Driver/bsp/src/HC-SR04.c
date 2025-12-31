@@ -2,7 +2,7 @@
 #include "stm32f1xx_ll_tim.h"
 #include "motor.h"
 #include "OLED.h"
-
+#include "rtthread.h"
 float a;
 float right = 0, left = 0;
 uint16_t Cnt;
@@ -17,66 +17,64 @@ void Ultrasound_Init()
     GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStructure.Pin = GPIO_PIN_12;
     GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStructure.Pull = GPIO_NOPULL ;
+    GPIO_InitStructure.Pull = GPIO_PULLDOWN ;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
     
     // Echo引脚配置（PB13）
     GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
     GPIO_InitStructure.Pin = GPIO_PIN_13;
-    GPIO_InitStructure.Pull = GPIO_PULLUP ;
+    GPIO_InitStructure.Pull = GPIO_NOPULL ;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
     
     // 初始化Trig引脚为低电平
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12,GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13,GPIO_PIN_RESET);
     TIM_HandleTypeDef htim4 = {0};
     htim4.Instance = TIM4 ;
-	htim4.Init.Prescaler = 36 -1;
+	htim4.Init.Prescaler = 72 -1;
 	htim4.Init.Period = 0xFFFF - 1;
 	htim4.Init.AutoReloadPreload = TIM_AUTOMATICOUTPUT_DISABLE ;
 	htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1 ;
 	htim4.Init.CounterMode = TIM_COUNTERMODE_UP ;
 	htim4.Init.RepetitionCounter = 0 ;
 	HAL_TIM_Base_Init(&htim4);
+    
+    TIM_ClockConfigTypeDef tim_clk = {0};
+	tim_clk.ClockSource = TIM_CLOCKSOURCE_INTERNAL ;
+	HAL_TIM_ConfigClockSource(&htim4,&tim_clk);
+
+	TIM_SlaveConfigTypeDef tim_slave_cfg = {0};
+	tim_slave_cfg.SlaveMode = TIM_SLAVEMODE_DISABLE ;
+	HAL_TIM_SlaveConfigSynchro(&htim4,&tim_slave_cfg);
+
+	TIM_MasterConfigTypeDef tim_master_cfg = {0};
+	tim_master_cfg.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE ;
+	HAL_TIMEx_MasterConfigSynchronization(&htim4,&tim_master_cfg);
+    // __HAL_TIM_ENABLE_IT(&htim4,TIM_IT_UPDATE);
+    // HAL_NVIC_SetPriority(TIM4_IRQn,3,2);
+    // HAL_NVIC_EnableIRQ(TIM4_IRQn);
 }
 
 float Test_Distance()
 {
     // 发送10us触发脉冲
+    rt_kprintf("start detect distance\n %d %d",HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_12),HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_12));
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12,GPIO_PIN_SET);
-    // Delay_us(20);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12,GPIO_PIN_RESET);
-
-    // 等待回波信号变高（增加超时检测）
-    uint32_t timeout = 0;
-    while(HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_13) == GPIO_PIN_RESET)
-    {
-        if (++timeout > 10000) // 约10ms超时（根据实际情况调整）
-        {
-            return -1; // 返回错误值
-        }
-        // Delay_us(1);
-    }
-
-    // 启动定时器测量高电平持续时间
     LL_TIM_SetCounter(TIM4,0);
     LL_TIM_EnableCounter(TIM4);
-    // 等待回波信号变低（增加超时检测）
-    timeout = 0;
-    while(HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_13) == GPIO_PIN_RESET)
-    {
-        if(LL_TIM_GetCounter(TIM4) > 58000)// 约58ms超时（4m距离）
-        {
-            LL_TIM_DisableCounter(TIM4);
-            LL_TIM_SetCounter(TIM4,0);
-            TIM4->CNT = 0;
-            return -1;
-        }
-    }
+    while(LL_TIM_GetCounter(TIM4) < 10);
+    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+
     LL_TIM_DisableCounter(TIM4);
-    Cnt = LL_TIM_GetCounter(TIM4);
+    while(!HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_13));
     LL_TIM_SetCounter(TIM4,0);
-    // 计算距离（单位：厘米）
-    float distance = (Cnt * 0.034) / 2; // 修正计算公式
+    LL_TIM_EnableCounter(TIM4);
+    while(HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_13));
+    rt_kprintf("detece distance over\n");
+    uint32_t tim = LL_TIM_GetCounter(TIM4);
+    LL_TIM_DisableCounter(TIM4);
+    uint32_t distance = tim / 1000.0 * 34.0;  // 修正计算公式
+    rt_kprintf("ditance is %dcm\n,tim:%d",distance,tim);
     return distance;
 }
 
