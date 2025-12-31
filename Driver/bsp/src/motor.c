@@ -36,7 +36,7 @@ void Motor_Astate(uint8_t state)
 	}
 }
 
-void Motor_Aspeed(int8_t speed)
+void Motor_Aspeed(uint16_t speed)
 {
 	PWM_Setcompare3(speed);
 }
@@ -60,7 +60,7 @@ void Motor_Bstate(uint8_t state)
 	}
 }
 
-void Motor_Bspeed(int8_t speed)
+void Motor_Bspeed(uint16_t speed)
 {
 	PWM_Setcompare2(speed);
 }
