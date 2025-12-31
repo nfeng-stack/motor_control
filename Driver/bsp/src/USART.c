@@ -1,5 +1,7 @@
-#include "stm32f1xx_hal.h"                  // Device header
+#include "stm32f1xx_hal.h"  
+#include "stm32f1xx_ll_usart.h"                // Device header
 #include "OLED.h"
+#include "rtthread.h"
 
 uint8_t receivedata;
 uint8_t flagdata;
@@ -12,13 +14,13 @@ void Send_Init(void)
 	GPIO_Initstructure.Mode = GPIO_MODE_AF_PP;
 	GPIO_Initstructure.Pin = GPIO_PIN_9;
 	GPIO_Initstructure.Speed = GPIO_SPEED_FREQ_HIGH;
-	GPIO_Initstructure.Pull = GPIO_NOPULL ;
+	GPIO_Initstructure.Pull = GPIO_PULLUP ;
 	HAL_GPIO_Init(GPIOA, &GPIO_Initstructure);
 	
-	GPIO_Initstructure.Mode = GPIO_MODE_AF_PP;
+	GPIO_Initstructure.Mode = GPIO_MODE_AF_INPUT;
 	GPIO_Initstructure.Pin = GPIO_PIN_10;
 	GPIO_Initstructure.Speed = GPIO_SPEED_FREQ_HIGH;
-	GPIO_Initstructure.Pull = GPIO_NOPULL ;
+	GPIO_Initstructure.Pull = GPIO_PULLUP ;
 	HAL_GPIO_Init(GPIOA, &GPIO_Initstructure);
 	
 	UART_HandleTypeDef huart1 = {0};
@@ -96,20 +98,20 @@ uint8_t GET_receivedata(void)
 	return receivedata;
 }
 
-/*void USART1_IRQHandler()
+void USART1_IRQHandler()
 {
-	if(USART_GetITStatus(USART1,USART_IT_RXNE) == SET)
+	if(LL_USART_IsActiveFlag_RXNE(USART1))
 	{
-		receivedata = USART_ReceiveData(USART1);
+		receivedata = LL_USART_ReceiveData8(USART1);
 		flagdata = 1;
-//		OLED_ShowHexNum(2,1,receivedata,3);
-		if(save_flagdata() == 1)
-		{
-			data = GET_receivedata();
-			OLED_ShowHexNum(2,1,data,2);
-		}
-		USART_ClearITPendingBit(USART1 ,USART_IT_RXNE);
+		OLED_ShowHexNum(2,1,receivedata,3);
+		// if(save_flagdata() == 1)
+		// {
+		// 	data = GET_receivedata();
+		// 	OLED_ShowHexNum(2,1,data,2);
+		// }
+		LL_USART_ClearFlag_RXNE(USART1);
 	}
 }
-*/
+
 
