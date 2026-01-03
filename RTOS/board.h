@@ -22,6 +22,6 @@ typedef struct
 }mb_message;
 
 int8_t board_bsp_send_message(board_bsp_mb_enum message_enum,void *message);
-
+int8_t board_bsp_module_register(void (*module_fun)(void * message),board_bsp_mb_enum module_enum);
 
 #endif

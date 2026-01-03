@@ -42,7 +42,8 @@ void bsp_init(void)
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_2);/*必须在配置系统时钟以前执行*/
     sysclk_cfg();/*配置系统时钟*/
     __HAL_RCC_SYSCFG_CLK_ENABLE();
-    uart_init();
+    bsp_uart3_init();
+    Ultrasound_Init();
     // adc_init();
     // timer_init();
 }

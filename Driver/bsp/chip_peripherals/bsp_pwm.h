@@ -1,5 +1,8 @@
 #ifndef __BSP_PWM_H
 #define __BSP_PWM_H
+#include "stdint.h"
+#include "stm32f1xx_hal.h"               // Device header
+#include "stm32f1xx_ll_tim.h"
 
 #define TIM2_PWM_OC1_PIN	GPIO_PIN_0	
 #define TIM2_PWM_OC2_PIN	GPIO_PIN_1	

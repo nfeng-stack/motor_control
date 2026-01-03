@@ -9,11 +9,17 @@ SZ = arm-none-eabi-size
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 
+DEBUG_ENABLE := 1
+
+
 #编译参数
-CPPFLAG = -IApplication/inc -IDriver/bsp/inc \
+CPPFLAG = -IApplication/inc -IDriver/bsp -IDriver/bsp/board_peripherals -IDriver/bsp/chip_peripherals \
            -IDriver/CMSIS/cortex-m3 -IDriver/CMSIS/device/inc       \
 		   -IDriver/Hal_lib/inc -IDriver/Hal_lib/inc/Legacy \
 			-IRTOS/include -IRTOS/components/finsh/inc -IRTOS
+ifeq ($(DEBUG_ENABLE),1)
+CPPFLAG += -DENABLE_DEBUG
+endif
 
 CFLAG = -mthumb -mcpu=cortex-m3 -DUSE_HAL_DRIVER -DSTM32F103xB -O2 -Wall \
         -fdata-sections -ffunction-sections -g -gdwarf-2 -MMD -MP
@@ -22,8 +28,9 @@ LFLAG = -mthumb -mcpu=cortex-m3 -T./en_config/STM32F103XB_FLASH.ld \
          -specs=nano.specs -lc -lm -lnosys -Wl,-Map=$(BUILT_DIR)/$(TARGET).map,--cref -Wl,--gc-sections \
 		-u _printf_float -Wl,--no-warn-rwx-segments
 
-SOURCE_PATH = Application/src Driver/bsp/src Driver/CMSIS/device/src Driver/Hal_lib/src Driver/Hal_lib/Legacy \
-			  RTOS/components/finsh/src RTOS/libcpu RTOS/src RTOS
+SOURCE_PATH = Application/src Driver/bsp/board_peripherals Driver/bsp/chip_peripherals \
+ 				Driver/bsp Driver/CMSIS/device/src Driver/Hal_lib/src Driver/Hal_lib/Legacy \
+			  	RTOS/components/finsh/src RTOS/libcpu RTOS/src RTOS
 
 C_SOURCE =$(foreach dir,$(SOURCE_PATH),$(wildcard $(dir)/*.c))
 A_SOURCE =$(foreach dir,$(SOURCE_PATH),$(wildcard $(dir)/*.S))
@@ -31,8 +38,8 @@ A_OBJS =$(patsubst %.S,$(BUILT_DIR)/%.o,$(notdir $(A_SOURCE)))
 OBJS = $(patsubst %.c,$(BUILT_DIR)/%.o,$(notdir $(C_SOURCE)))
 OBJS +=$(A_OBJS)
 DEPS =$(OBJS:.o=.d)	
-vpath %.c Application/src:Driver/bsp/src:Driver/CMSIS/device/src:Driver/Hal_lib/src:Driver/Hal_lib/Legacy:RTOS/components/finsh/src:RTOS/libcpu:RTOS/src:RTOS
-vpath %.S Application/src:Driver/bsp/src:Driver/CMSIS/device/src:Driver/Hal_lib/src:Driver/Hal_lib/Legacy:RTOS/components/finsh/src:RTOS/libcpu:RTOS/src:RTOS 
+vpath %.c Application/src:Driver/bsp:Driver/bsp/board_peripherals:Driver/bsp/chip_peripherals:Driver/CMSIS/device/src:Driver/Hal_lib/src:Driver/Hal_lib/Legacy:RTOS/components/finsh/src:RTOS/libcpu:RTOS/src:RTOS
+vpath %.S Application/src:Driver/bsp:Driver/bsp/board_peripherals:Driver/bsp/chip_peripherals:Driver/CMSIS/device/src:Driver/Hal_lib/src:Driver/Hal_lib/Legacy:RTOS/components/finsh/src:RTOS/libcpu:RTOS/src:RTOS 
 
 all:$(BUILT_DIR)/$(TARGET).hex $(BUILT_DIR)/$(TARGET).bin
 

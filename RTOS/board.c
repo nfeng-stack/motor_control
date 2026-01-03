@@ -16,7 +16,7 @@
  * Please modify RT_HEAP_SIZE if you enable RT_USING_HEAP
  * the RT_HEAP_SIZE max value = (sram size - ZI size), 1024 means 1024 bytes
  */
-#define RT_HEAP_SIZE (16 * 1024)
+#define RT_HEAP_SIZE (13 * 1024)
 static rt_uint8_t rt_heap[RT_HEAP_SIZE] __attribute__((section("._user_heap_stack")));
 
 RT_WEAK void *rt_heap_begin_get(void)
@@ -160,6 +160,7 @@ module_fun g_module_fun[BOARD_BSP_MODULE_SIZE];
 int8_t board_bsp_module_register(void (*module_fun)(void * message),board_bsp_mb_enum module_enum)
 {
 	g_module_fun[module_enum] = module_fun;
+	return 0;
 }
 
 int8_t board_bsp_send_message(board_bsp_mb_enum message_enum,void *message)
@@ -170,6 +171,7 @@ int8_t board_bsp_send_message(board_bsp_mb_enum message_enum,void *message)
 	}
 	mb_message_p->message = message;
 	mb_message_p->message_enum = message_enum;
+	rt_mb_send(&board_bsp_mail,(rt_ubase_t)mb_message_p);
 	return 0;
 }
 
@@ -225,7 +227,7 @@ void board_bsp_thread_enrty(void *par)
 		default:
 			break;
 		}
-		rt_free(((mb_message *)rev)->message);
+		rt_free(((void *)rev));
 	}
 }
 

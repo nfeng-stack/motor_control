@@ -1,6 +1,9 @@
 #ifndef     __BSP_UART_H
 #define     __BSP_UART_H
-
+#include "stdint.h"
+#include "stm32f1xx_hal.h"  
+#include "stm32f1xx_ll_usart.h"
+#include "stm32f1xx_ll_dma.h"
 #define UART1_TX_PIN        GPIO_PIN_9
 #define UART1_RX_PIN        GPIO_PIN_10
 #define UART1_PIN_GROUP     GPIOA

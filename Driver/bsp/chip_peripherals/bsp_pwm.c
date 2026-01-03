@@ -1,5 +1,3 @@
-#include "stm32f1xx_hal.h"               // Device header
-#include "stm32f1xx_ll_tim.h"
 #include "bsp_pwm.h"
 
 
@@ -109,9 +107,6 @@ void pwm_tim2_start(uint32_t pwm_ch)
 void pwm_tim2_close(uint32_t pwm_ch)
 {
 	LL_TIM_CC_DisableChannel(TIM2,pwm_ch);
-	if (LL_TIM_IsEnabledCounter(TIM2)) {
-		LL_TIM_DisableCounter(TIM2);
-	}
 }
 
 void pwn_tim2_set_wideth(uint32_t wideth ,uint32_t pwm_ch)

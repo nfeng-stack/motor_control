@@ -1,5 +1,3 @@
-#include "stm32f1xx_hal.h"
-#include "stm32f1xx_ll_tim.h"
 #include "bsp_timer.h"
 
 void bsp_timer4_init(void)
@@ -68,4 +66,19 @@ void bsp_timer4_start()
 void bsp_timer4_stop()
 {
     LL_TIM_DisableCounter(TIM4);
+}
+
+uint32_t bsp_timer4_get_counter(void)
+{
+    return LL_TIM_GetCounter(TIM4);
+}
+
+void bsp_timer4_disable_it(void)
+{
+    LL_TIM_DisableIT_UPDATE(TIM4);
+}
+
+void bsp_timer4_enable_it(void)
+{
+    LL_TIM_EnableIT_UPDATE(TIM4);
 }

@@ -1,6 +1,3 @@
-#include "stm32f1xx_hal.h"  
-#include "stm32f1xx_ll_usart.h"
-#include "stm32f1xx_ll_dma.h"
 #include "bsp_uart.h"
 
 extern uint8_t rx_buff[64];

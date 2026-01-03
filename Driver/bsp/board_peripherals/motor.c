@@ -1,90 +1,106 @@
-#include "stm32f1xx_hal.h"                // Device header
-#include "PWM.h"
+#include "bsp_gpio.h"
+#include "bsp_pwm.h"
+#include "motor.h"
 
-unsigned char Pin_value1 = 0;
-unsigned char Pin_value2 = 0;
+
+void Motor_Astate(motoer_control control)
+{
+	switch (control)
+	{
+	case MOTOER_CONTROL_STOP:
+		bsp_motor_gpio_reset(MOTOERA_CONTROL_IN1);
+		bsp_motor_gpio_reset(MOTOERA_CONTROL_IN2);
+		break;
+	case MOTOER_CONTROL_POSITION_RUN:
+		bsp_motor_gpio_set(MOTOERA_CONTROL_IN1);
+		bsp_motor_gpio_reset(MOTOERA_CONTROL_IN2);
+		break;
+	case MOTOER_CONTROL_NEGATIVE_RUN:
+		bsp_motor_gpio_reset(MOTOERA_CONTROL_IN1);
+		bsp_motor_gpio_set(MOTOERA_CONTROL_IN2);
+		break;
+	case MOTER_CONTROL_RUN_TO_STOP:
+		bsp_motor_gpio_set(MOTOERA_CONTROL_IN1);
+		bsp_motor_gpio_set(MOTOERA_CONTROL_IN2);
+		break;
+	default:
+		break;
+	}
+}
+
+void MotorA_set_speed(uint16_t speed)
+{
+	pwn_tim2_set_wideth(speed,MOTOERA_PWM_CH);
+}
+
+void Motor_Bstate(motoer_control control)
+{
+	switch (control)
+	{
+	case MOTOER_CONTROL_STOP:
+		bsp_motor_gpio_reset(MOTOERB_CONTROL_IN1);
+		bsp_motor_gpio_reset(MOTOERB_CONTROL_IN2);
+		break;
+	case MOTOER_CONTROL_POSITION_RUN:
+		bsp_motor_gpio_set(MOTOERB_CONTROL_IN1);
+		bsp_motor_gpio_reset(MOTOERB_CONTROL_IN2);
+		break;
+	case MOTOER_CONTROL_NEGATIVE_RUN:
+		bsp_motor_gpio_reset(MOTOERB_CONTROL_IN1);
+		bsp_motor_gpio_set(MOTOERB_CONTROL_IN2);
+		break;
+	case MOTER_CONTROL_RUN_TO_STOP:
+		bsp_motor_gpio_set(MOTOERB_CONTROL_IN1);
+		bsp_motor_gpio_set(MOTOERB_CONTROL_IN2);
+		break;
+	default:
+		break;
+	}
+}
+
+void MotoerB_set_speed(uint16_t speed)
+{
+	pwn_tim2_set_wideth(speed,MOTOERB_PWM_CH);
+}
+
+void motoerA_start_positive(void)
+{
+	Motor_Astate(MOTOER_CONTROL_POSITION_RUN);
+	pwm_tim2_start(MOTOERA_PWM_CH);
+}
+
+void motoerB_start_positive(void)
+{
+	Motor_Bstate(MOTOER_CONTROL_POSITION_RUN);
+	pwm_tim2_start(MOTOERB_PWM_CH);
+}
+
+void motoerA_start_negative(void)
+{
+	Motor_Astate(MOTOER_CONTROL_NEGATIVE_RUN);
+	pwm_tim2_start(MOTOERA_PWM_CH);
+}
+
+void motoerB_start_negatice(void)
+{
+	Motor_Bstate(MOTOER_CONTROL_NEGATIVE_RUN);
+	pwm_tim2_start(MOTOERB_PWM_CH);
+}
+
+void motoerA_stop(void)
+{
+	Motor_Astate(MOTER_CONTROL_RUN_TO_STOP);
+	pwm_tim2_close(MOTOERA_PWM_CH);
+}
+
+void motoerB_stop(void)
+{
+	Motor_Bstate(MOTER_CONTROL_RUN_TO_STOP);
+	pwm_tim2_close(MOTOERB_PWM_CH);
+}
 
 void Motor_Init(void)
 {
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	GPIO_InitTypeDef GPIO_name;
-	GPIO_name.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_name.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7 ;
-	GPIO_name.Pull = GPIO_NOPULL ;
-	GPIO_name.Speed = GPIO_SPEED_FREQ_HIGH ;
-	HAL_GPIO_Init(GPIOA,&GPIO_name);
-	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_1 | GPIO_PIN_2,GPIO_PIN_SET);		
-	PWM_Init();
+	bsp_motor_gpio_init();
+	pwm_tim2_init();
 }	
-
-void Motor_Astate(uint8_t state)
-{
-	if(state == 1)
-	{
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_RESET);
-	}
-	else if(state == 0)
-	{
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_SET);
-	}
-	else if(state == 2)
-	{
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_SET);
-	}
-}
-
-void Motor_Aspeed(uint16_t speed)
-{
-	PWM_Setcompare3(speed);
-}
-
-void Motor_Bstate(uint8_t state)
-{
-	if(state == 1)
-	{
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_RESET);
-	}
-	else if(state == 0)
-	{
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_SET);
-	}
-	else if(state == 2)
-	{
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_SET);
-	}
-}
-
-void Motor_Bspeed(uint16_t speed)
-{
-	PWM_Setcompare2(speed);
-}
-
-
-
-unsigned char show1(void)
-{
-	if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_4) == GPIO_PIN_SET)
-	{
-		Pin_value1 = 1;
-	}
-	else
-	{Pin_value1 = 0;}
-	return Pin_value1;
-}
-
-unsigned char show2(void)
-{
-	if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_5) == GPIO_PIN_SET)
-	{
-		Pin_value2 = 1;
-	}
-	else
-	{Pin_value2 = 0;}
-	return Pin_value2;
-}
