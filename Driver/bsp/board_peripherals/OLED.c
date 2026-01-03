@@ -1,26 +1,6 @@
 #include "stm32f1xx_hal.h"
 #include "OLED_Font.h"
-
-/*引脚配置*/
-#define OLED_W_SCL(x)		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_8,(GPIO_PinState)(x))
-#define OLED_W_SDA(x)		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_9,(GPIO_PinState)(x))
-
-/*引脚初始化*/
-void OLED_I2C_Init(void)
-{
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-	GPIO_InitTypeDef GPIO_InitStructure = {0};
-	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_OD;
-	GPIO_InitStructure.Pin = GPIO_PIN_8 ;
-	GPIO_InitStructure.Pull = GPIO_PULLDOWN ;
-	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH ;
-	HAL_GPIO_Init(GPIOB,&GPIO_InitStructure);
-	GPIO_InitStructure.Pin = GPIO_PIN_9 ;
-	HAL_GPIO_Init(GPIOB,&GPIO_InitStructure);
-	OLED_W_SCL(1);
-	OLED_W_SDA(1);
-}
-
+#include "bsp_gpio.h"
 /**
   * @brief  I2C开始
   * @param  无
@@ -276,7 +256,7 @@ void OLED_Init(void)
 		for (j = 0; j < 1000; j++);
 	}
 	
-	OLED_I2C_Init();			//端口初始化
+	bsp_oled_gpio_init();			//端口初始化
 	
 	OLED_WriteCommand(0xAE);	//关闭显示
 	

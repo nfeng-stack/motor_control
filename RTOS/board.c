@@ -60,6 +60,7 @@ void rt_hw_board_init(void)
 #endif
 }
 
+/********************* 定义板级标准输入输出流 *******************************/
 #ifdef RT_USING_CONSOLE
 
 void rt_hw_console_output(const char *str)
@@ -114,6 +115,16 @@ char read_bufer()
 	}
 	return (char)fish_bufer.bufer[fish_bufer.read_position++];
 }
+
+char rt_hw_console_getchar(void) 
+{
+	return read_bufer();
+}
+
+/***********************************************************************/
+
+/***************************** 板级中断函数 *******************************/
+
 uint8_t rx_buff[64];
 void USART3_IRQHandler(void)
 {
@@ -131,9 +142,118 @@ void USART3_IRQHandler(void)
         LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_3);
     }
 }
-char rt_hw_console_getchar(void) 
+
+/*********************************************************************/
+#include "board.h"
+/**
+ * 初始化bsp运行线程
+ * 该线程主要为了适配硬件中断，驱动接口等
+ */
+struct rt_thread board_bsp_thread ;
+uint32_t board_bsp_thread_stack[BOARD_BSP_THREAD_STACK_SIZE];
+
+struct rt_mailbox board_bsp_mail;
+uint32_t board_bsp_mail_pool[BOARD_BSP_MAIL_SIZE];
+
+typedef void (*module_fun)(void * message);
+module_fun g_module_fun[BOARD_BSP_MODULE_SIZE];
+int8_t board_bsp_module_register(void (*module_fun)(void * message),board_bsp_mb_enum module_enum)
 {
-	return read_bufer();
+	g_module_fun[module_enum] = module_fun;
 }
+
+int8_t board_bsp_send_message(board_bsp_mb_enum message_enum,void *message)
+{
+	mb_message * mb_message_p = (mb_message *)rt_malloc(sizeof(mb_message));
+	if(mb_message_p == NULL){
+		return -1;
+	}
+	mb_message_p->message = message;
+	mb_message_p->message_enum = message_enum;
+	return 0;
+}
+
+void board_bsp_thread_enrty(void *par)
+{
+	while(1)
+	{
+		rt_thread_delay(10);
+		rt_kprintf("this bsp_thread_runing\n");
+		rt_ubase_t rev = 0;
+		if(rt_mb_recv(&board_bsp_mail,&rev,RT_WAITING_FOREVER) != RT_EOK){
+			rt_kprintf("this recv mb error\n");
+		}
+		rt_kprintf("revc mb value is %d\n",rev);
+		board_bsp_mb_enum message_enum = ((mb_message *)rev)->message_enum;
+		switch (message_enum)
+		{
+		case BOARD_BSP_MODULE_ULTRALSOUND:
+			if(g_module_fun[BOARD_BSP_MODULE_ULTRALSOUND] != NULL){
+				g_module_fun[BOARD_BSP_MODULE_ULTRALSOUND](((mb_message *)rev)->message);
+			}
+			break;
+		case BOARD_BSP_MODULE_TIMER:
+			if(g_module_fun[BOARD_BSP_MODULE_TIMER] != NULL){
+				g_module_fun[BOARD_BSP_MODULE_TIMER](((mb_message *)rev)->message);
+			}
+			break;
+		case BOARD_BSP_MODULE_GPIO_IT:
+			if(g_module_fun[BOARD_BSP_MODULE_GPIO_IT] != NULL){
+				g_module_fun[BOARD_BSP_MODULE_GPIO_IT](((mb_message *)rev)->message);
+			}
+			break;
+		case BOARD_BSP_MODULE_ELECTIC_MOTOR:
+			if(g_module_fun[BOARD_BSP_MODULE_ELECTIC_MOTOR] != NULL){
+				g_module_fun[BOARD_BSP_MODULE_ELECTIC_MOTOR](((mb_message *)rev)->message);
+			}
+			break;
+		case BOARD_BSP_MODULE_OLED:
+			if(g_module_fun[BOARD_BSP_MODULE_OLED] != NULL){
+				g_module_fun[BOARD_BSP_MODULE_OLED](((mb_message *)rev)->message);
+			}
+			break;
+		case BOARD_BSP_MODULE_LED:
+			if(g_module_fun[BOARD_BSP_MODULE_LED] != NULL){
+				g_module_fun[BOARD_BSP_MODULE_LED](((mb_message *)rev)->message);
+			}
+			break;
+		case BOARD_BSP_MODULE_SERVO_MOTOR:
+			if(g_module_fun[BOARD_BSP_MODULE_SERVO_MOTOR] != NULL){
+				g_module_fun[BOARD_BSP_MODULE_SERVO_MOTOR](((mb_message *)rev)->message);
+			}
+			break;
+		default:
+			break;
+		}
+		rt_free(((mb_message *)rev)->message);
+	}
+}
+
+ long board_bsp_thread_init(void)
+ {
+	rt_err_t error = rt_thread_init(&board_bsp_thread,\
+									"bsp_thread",\
+									board_bsp_thread_enrty,\
+									NULL,\
+									&board_bsp_thread_stack,\
+									BOARD_BSP_THREAD_STACK_SIZE,\
+									2,10);
+	if(error != RT_EOK) {
+		return -1;
+	}
+	error = rt_mb_init(&board_bsp_mail,\
+						"board_bsp_mail",\
+						&board_bsp_mail_pool,\
+						BOARD_BSP_MAIL_SIZE,\
+						RT_IPC_FLAG_FIFO);
+	if(error != RT_EOK){
+		return -1;
+	}
+
+    rt_thread_startup(&board_bsp_thread);
+	return 0;
+ }
+MSH_CMD_EXPORT(board_bsp_thread_init,start_up_board_bsp_thread);
+
 
 #endif
