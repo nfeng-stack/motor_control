@@ -10,7 +10,7 @@ void pwm_tim2_init(void)
 	//pwm输出io口配置
 	tim_pwm_pin.Pin = TIM2_PWM_OC2_PIN | TIM2_PWM_OC3_PIN ;
 	tim_pwm_pin.Mode = GPIO_MODE_AF_PP ;
-	tim_pwm_pin.Pull = GPIO_NOPULL ;
+	tim_pwm_pin.Pull = GPIO_PULLUP ;
 	tim_pwm_pin.Speed = GPIO_SPEED_FREQ_HIGH ;
 	HAL_GPIO_Init(TIM2_PWM_OC_PIN_GROUP,&tim_pwm_pin);
 	//时基单元配置
@@ -59,14 +59,14 @@ void pwm_tim3_init(void)
 	//输出pwm io口配置
 	tim_pwm_pin.Pin = TIM3_PWM_OC3_PIN_GROUPB;
 	tim_pwm_pin.Mode = GPIO_MODE_AF_PP ;
-	tim_pwm_pin.Pull = GPIO_NOPULL ;
+	tim_pwm_pin.Pull = GPIO_PULLUP ;
 	tim_pwm_pin.Speed = GPIO_SPEED_FREQ_HIGH ;
 	HAL_GPIO_Init(TIM3_PWM_OC_PIN_GROUPB,&tim_pwm_pin);
 	//时基单元配置
-	htim3.Instance = TIM2 ;
+	htim3.Instance = TIM3 ;
 	htim3.Init.Prescaler = 72 -1;/* 因为tim的时钟来自内部，apb1如果apb1分频为1，则timclk倍频1否则2*/
-	htim3.Init.Period = 1000 -1;
-	htim3.Init.AutoReloadPreload = TIM_AUTOMATICOUTPUT_DISABLE ;
+	htim3.Init.Period = 20000 -1; /* 舵机标准频率*/
+	htim3.Init.AutoReloadPreload = TIM_AUTOMATICOUTPUT_ENABLE ;
 	htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1 ;
 	htim3.Init.CounterMode = TIM_COUNTERMODE_UP ;
 	htim3.Init.RepetitionCounter = 0 ;
@@ -92,13 +92,37 @@ void pwm_tim3_init(void)
 	tim_oc_channel_config.OCNIdleState  = TIM_OCIDLESTATE_RESET;
 	tim_oc_channel_config.OCNPolarity = TIM_OCNPOLARITY_HIGH;
 	tim_oc_channel_config.OCPolarity = TIM_OCPOLARITY_HIGH ;
-	tim_oc_channel_config.Pulse = 500;
+	tim_oc_channel_config.Pulse = 1000;
 	HAL_TIM_PWM_ConfigChannel(&htim3,&tim_oc_channel_config,TIM_PWM_CH_3);
+}
+
+uint32_t pwm_ch_hal_to_ll(uint32_t pwm_ch)
+{
+	uint32_t ll_pwm_ch = LL_TIM_CHANNEL_CH1;
+	switch (pwm_ch)
+	{
+	case TIM_PWM_CH_1 :
+		ll_pwm_ch = LL_TIM_CHANNEL_CH1;
+		break;
+	case TIM_PWM_CH_2 :
+		ll_pwm_ch = LL_TIM_CHANNEL_CH2;
+		break;
+	case TIM_PWM_CH_3 :
+		ll_pwm_ch = LL_TIM_CHANNEL_CH3;
+		break;
+	case TIM_PWM_CH_4 :
+		ll_pwm_ch = LL_TIM_CHANNEL_CH4;
+		break;
+	default:
+		break;
+	}
+	return ll_pwm_ch;
 }
 
 void pwm_tim2_start(uint32_t pwm_ch)
 {
-	LL_TIM_CC_EnableChannel(TIM2,pwm_ch);
+
+	LL_TIM_CC_EnableChannel(TIM2,pwm_ch_hal_to_ll(pwm_ch));
 	if (!LL_TIM_IsEnabledCounter(TIM2)) {
 		LL_TIM_EnableCounter(TIM2);
 	}
@@ -106,7 +130,7 @@ void pwm_tim2_start(uint32_t pwm_ch)
 
 void pwm_tim2_close(uint32_t pwm_ch)
 {
-	LL_TIM_CC_DisableChannel(TIM2,pwm_ch);
+	LL_TIM_CC_DisableChannel(TIM2,pwm_ch_hal_to_ll(pwm_ch));
 }
 
 void pwn_tim2_set_wideth(uint32_t wideth ,uint32_t pwm_ch)
@@ -132,7 +156,7 @@ void pwn_tim2_set_wideth(uint32_t wideth ,uint32_t pwm_ch)
 
 void pwm_tim3_start(uint32_t pwm_ch)
 {
-	LL_TIM_CC_EnableChannel(TIM3,pwm_ch);
+	LL_TIM_CC_EnableChannel(TIM3,pwm_ch_hal_to_ll(pwm_ch));
 	if (!LL_TIM_IsEnabledCounter(TIM3)) {
 		LL_TIM_EnableCounter(TIM3);
 	}
@@ -140,13 +164,13 @@ void pwm_tim3_start(uint32_t pwm_ch)
 
 void pwm_tim3_close(uint32_t pwm_ch)
 {
-	LL_TIM_CC_DisableChannel(TIM3,pwm_ch);
+	LL_TIM_CC_DisableChannel(TIM3,pwm_ch_hal_to_ll(pwm_ch));
 	if (LL_TIM_IsEnabledCounter(TIM3)) {
 		LL_TIM_DisableCounter(TIM3);
 	}
 }
 
-void pwn_tim3_set_wideth(uint32_t wideth ,uint32_t pwm_ch)
+void pwm_tim3_set_wideth(uint32_t wideth ,uint32_t pwm_ch)
 {
 	switch(pwm_ch)
 	{

@@ -6,6 +6,7 @@
 #include "LED.h"
 #include "motor.h"
 #include "OLED.h"
+#include "Servo_motor.h"
 extern void bsp_init(void);
 
 #endif

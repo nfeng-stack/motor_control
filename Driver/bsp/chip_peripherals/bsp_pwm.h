@@ -29,7 +29,7 @@ void pwm_tim2_close(uint32_t pwm_ch);
 void pwn_tim2_set_wideth(uint32_t wideth ,uint32_t pwm_ch);
 void pwm_tim3_start(uint32_t pwm_ch);
 void pwm_tim3_close(uint32_t pwm_ch);
-void pwn_tim3_set_wideth(uint32_t wideth ,uint32_t pwm_ch);
+void pwm_tim3_set_wideth(uint32_t wideth ,uint32_t pwm_ch);
 
 
 #endif
