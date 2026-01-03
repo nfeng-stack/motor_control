@@ -185,7 +185,6 @@ void board_bsp_thread_enrty(void *par)
 		if(rt_mb_recv(&board_bsp_mail,&rev,RT_WAITING_FOREVER) != RT_EOK){
 			rt_kprintf("this recv mb error\n");
 		}
-		rt_kprintf("revc mb value is %d\n",rev);
 		board_bsp_mb_enum message_enum = ((mb_message *)rev)->message_enum;
 		switch (message_enum)
 		{

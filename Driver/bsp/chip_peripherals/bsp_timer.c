@@ -25,6 +25,9 @@ void bsp_timer4_init(void)
 	tim_master_cfg.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE ;
 	HAL_TIMEx_MasterConfigSynchronization(&htim4,&tim_master_cfg);
     __HAL_TIM_ENABLE_IT(&htim4,TIM_IT_UPDATE);
+    __HAL_TIM_CLEAR_IT(&htim4,TIM_IT_UPDATE);
+    __HAL_TIM_DISABLE(&htim4);
+    HAL_NVIC_ClearPendingIRQ(TIM4_IRQn);
     HAL_NVIC_SetPriority(TIM4_IRQn,3,2);
     HAL_NVIC_EnableIRQ(TIM4_IRQn);
 
@@ -56,6 +59,11 @@ void bsp_timer4_set_counter(uint32_t count)
         LL_TIM_DisableCounter(TIM4);
     }
     LL_TIM_SetCounter(TIM4,count);
+}
+
+void bsp_timer4_set_autoreload(uint32_t count)
+{
+    LL_TIM_SetAutoReload(TIM4,count);
 }
 
 void bsp_timer4_start()

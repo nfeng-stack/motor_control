@@ -7,9 +7,10 @@
 void ultrasound_module_handler(void *message)
 {
     __attribute__((used)) uint32_t tim = *(uint32_t *)message;
+    uint32_t distance = 170 * tim ;
     /*计算出障碍物距离当前小车的距离*/
 #ifdef ENABLE_DEBUG
-    rt_kprintf("ultrasound detece tim :%d",tim);
+    rt_kprintf("ultrasound distance :%dnm,tim :%d\n",(uint32_t)distance,tim);
 #endif
 }
 
@@ -19,10 +20,12 @@ void * ultrasound_receive_echo(bsp_gpio_in_enum gpio_status)
     if (gpio_status == BSP_GPIO_FAIL) {
         tim = bsp_timer4_get_counter();
         bsp_timer4_stop();
+        bsp_ultrasound_gpio_diableit();
         board_bsp_send_message(BOARD_BSP_MODULE_ULTRALSOUND,&tim);
     } else if (gpio_status == BSP_GPIO_RISING) {
         bsp_timer4_stop();
         bsp_timer4_set_counter(0);
+        bsp_timer4_set_autoreload(0xffff);
         bsp_timer4_disable_it();
         bsp_timer4_start();
     }
@@ -39,9 +42,11 @@ static void* ultrasound_triger_done(void * p)
 
 void ultrasound_detect_distance(void)
 {
-    bsp_ultrasound_gpio_set(ULTRASONIC_TRIG_PIN);
-    bsp_timer4_set_counter(20);
+    bsp_timer4_set_counter(0);
+    bsp_timer4_set_autoreload(20);
     bsp_timer4_enable_it();
+    bsp_ultarsound_gpio_enableit();
+    bsp_ultrasound_gpio_set(ULTRASONIC_TRIG_PIN);
     bsp_timer4_start();
 }
 #ifdef ENABLE_DEBUG

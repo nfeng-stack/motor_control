@@ -1,5 +1,5 @@
 #include "bsp_gpio.h"
-
+#include "stm32f1xx_ll_gpio.h"
 
 
 void bsp_ultrasound_gpio_init(void)
@@ -19,8 +19,7 @@ void bsp_ultrasound_gpio_init(void)
     GPIO_InitStructure.Pull = GPIO_PULLDOWN ;
     HAL_GPIO_Init(ULTRASONIC_PIN_GROUP, &GPIO_InitStructure);
 
-    //外部中断初始化
-    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+    //设置中断优先级
     HAL_NVIC_SetPriority(EXTI15_10_IRQn,0,1);
 
     // 初始化Trig引脚为低电平
@@ -44,6 +43,20 @@ void bsp_ultrasound_gpio_it_callback_register(void * (*gpio_it_callback)(bsp_gpi
     g_ultarsound_callback = gpio_it_callback;
 }
 
+void bsp_ultrasound_gpio_diableit(void)
+{
+    //外部中断初始化
+    __HAL_GPIO_EXTI_CLEAR_IT(ULTRASONIC_ECHO_PIN);
+    HAL_NVIC_ClearPendingIRQ(EXTI15_10_IRQn);
+    HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+}
+
+void bsp_ultarsound_gpio_enableit(void)
+{
+    __HAL_GPIO_EXTI_CLEAR_IT(ULTRASONIC_ECHO_PIN);
+    HAL_NVIC_ClearPendingIRQ(EXTI15_10_IRQn);
+    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+}
 void EXTI15_10_IRQHandler(void)
 {
     if(__HAL_GPIO_EXTI_GET_FLAG(ULTRASONIC_ECHO_PIN))

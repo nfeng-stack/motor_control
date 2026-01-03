@@ -28,6 +28,8 @@ typedef enum
 void bsp_ultrasound_gpio_init(void);
 void bsp_ultrasound_gpio_set(uint16_t gpio_pin);
 void bsp_ultrasound_gpio_reset(uint16_t gpio_pin);
+void bsp_ultrasound_gpio_diableit(void);
+void bsp_ultarsound_gpio_enableit(void);
 void bsp_oled_gpio_init(void);
 void bsp_led_gpio_init(void);
 void bsp_led_gpio_set(void);
