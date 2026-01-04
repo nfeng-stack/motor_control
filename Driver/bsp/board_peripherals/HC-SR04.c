@@ -4,14 +4,22 @@
 #include "HC-SR04.h"
 #include "rtthread.h"
 
+void (*g_detect_done_callback)(uint32_t distance);
+
+void ultarsound_module_detect_done_callbacke_register(void (*fun)(uint32_t distance))
+{
+    g_detect_done_callback = fun;
+}
+
 void ultrasound_module_handler(void *message)
 {
     __attribute__((used)) uint32_t tim = *(uint32_t *)message;
     uint32_t distance = 170 * tim ;
+    if(g_detect_done_callback != NULL)
+    {
+        g_detect_done_callback(distance);
+    }
     /*计算出障碍物距离当前小车的距离*/
-#ifdef ENABLE_DEBUG
-    rt_kprintf("ultrasound distance :%dnm,tim :%d\n",(uint32_t)distance,tim);
-#endif
 }
 
 static uint32_t tim ;

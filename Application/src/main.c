@@ -1,6 +1,7 @@
 #include "main.h"
-#include "rtthread.h"
+
 int main(void)
 {
-    rt_kprintf("hello world\n");
+    board_bsp_thread_init();
+    detect_obstacle_thread_init();
 }

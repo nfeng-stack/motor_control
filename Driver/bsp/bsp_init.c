@@ -43,10 +43,8 @@ void bsp_init(void)
     sysclk_cfg();/*配置系统时钟*/
     __HAL_RCC_SYSCFG_CLK_ENABLE();
     bsp_uart3_init();
-    // Ultrasound_Init();
+    Ultrasound_Init();
     servo_motor_init();
-    // adc_init();
-    // timer_init();
     // Motor_Init();
 }
 

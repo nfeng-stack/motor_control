@@ -7,6 +7,7 @@
 #include "motor.h"
 #include "OLED.h"
 #include "Servo_motor.h"
-extern void bsp_init(void);
+void bsp_init(void);
+long board_bsp_thread_init(void);
 
 #endif

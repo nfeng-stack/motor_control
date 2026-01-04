@@ -150,7 +150,7 @@ void USART3_IRQHandler(void)
  * 该线程主要为了适配硬件中断，驱动接口等
  */
 struct rt_thread board_bsp_thread ;
-uint32_t board_bsp_thread_stack[BOARD_BSP_THREAD_STACK_SIZE];
+uint8_t board_bsp_thread_stack[BOARD_BSP_THREAD_STACK_SIZE];
 
 struct rt_mailbox board_bsp_mail;
 uint32_t board_bsp_mail_pool[BOARD_BSP_MAIL_SIZE];
@@ -179,8 +179,9 @@ void board_bsp_thread_enrty(void *par)
 {
 	while(1)
 	{
-		rt_thread_delay(10);
+#ifdef ENABLE_DEBUG
 		rt_kprintf("this bsp_thread_runing\n");
+#endif
 		rt_ubase_t rev = 0;
 		if(rt_mb_recv(&board_bsp_mail,&rev,RT_WAITING_FOREVER) != RT_EOK){
 			rt_kprintf("this recv mb error\n");
@@ -250,11 +251,14 @@ void board_bsp_thread_enrty(void *par)
 	if(error != RT_EOK){
 		return -1;
 	}
-
+ #ifdef ENABLE_DEBUG
+	rt_kprintf("board_bsp_thread_init ok\n");
+#endif
     rt_thread_startup(&board_bsp_thread);
 	return 0;
  }
+#ifdef ENABLE_DEBUG
 MSH_CMD_EXPORT(board_bsp_thread_init,start_up_board_bsp_thread);
-
+#endif
 
 #endif
