@@ -3,7 +3,7 @@
 
 #define MOTOERA_PWM_CH		TIM_PWM_CH_3
 #define MOTOERB_PWM_CH		TIM_PWM_CH_2
-
+#include "stdint.h"
 typedef enum
 {
 	MOTOER_CONTROL_STOP,

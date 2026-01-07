@@ -44,6 +44,7 @@ typedef struct
 
 
 void detect_obstacle_thread_init(void);
+void start_system(void);
 
 
 

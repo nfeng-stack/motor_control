@@ -45,7 +45,8 @@ void bsp_init(void)
     bsp_uart3_init();
     Ultrasound_Init();
     servo_motor_init();
-    // Motor_Init();
+    Motor_Init();
+    bsp_uart1_init();
 }
 
 

@@ -119,11 +119,19 @@ uint8_t usart1_read(uint8_t *is_success)
         return usart1_rx_buffer.buffer[usart1_rx_buffer.read_position++ & 0x0f];
     }
 }
+void (*usart1_it_callback)(void);
+void bsp_usart1_register_rx_it_callback(void (*callback)(void))
+{
+    usart1_it_callback = callback;
+}
 
 void USART1_IRQHandler(void)
 {
 	if(LL_USART_IsActiveFlag_RXNE(USART1))
 	{
+        if(usart1_it_callback != NULL) {
+            usart1_it_callback();
+        }
         usart1_write(LL_USART_ReceiveData8(USART1));
 		LL_USART_ClearFlag_RXNE(USART1);
 	}

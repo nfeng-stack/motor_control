@@ -15,8 +15,8 @@ void pwm_tim2_init(void)
 	HAL_GPIO_Init(TIM2_PWM_OC_PIN_GROUP,&tim_pwm_pin);
 	//时基单元配置
 	htim2.Instance = TIM2 ;
-	htim2.Init.Prescaler = 72 -1;/* 因为tim的时钟来自内部，apb1如果apb1分频为1，则timclk倍频1否则2*/
-	htim2.Init.Period = 1000 -1;
+	htim2.Init.Prescaler = 0;/* 因为tim的时钟来自内部，apb1如果apb1分频为1，则timclk倍频1否则2*/
+	htim2.Init.Period = 2400 -1;/* 频率为10k*/
 	htim2.Init.AutoReloadPreload = TIM_AUTOMATICOUTPUT_ENABLE ;
 	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1 ;
 	htim2.Init.CounterMode = TIM_COUNTERMODE_UP ;
@@ -43,7 +43,7 @@ void pwm_tim2_init(void)
 	tim_oc_channel_config.OCNIdleState  = TIM_OCIDLESTATE_RESET;
 	tim_oc_channel_config.OCNPolarity = TIM_OCNPOLARITY_HIGH;
 	tim_oc_channel_config.OCPolarity = TIM_OCPOLARITY_HIGH ;
-	tim_oc_channel_config.Pulse = 500;
+	tim_oc_channel_config.Pulse = 1200;
 	HAL_TIM_PWM_ConfigChannel(&htim2,&tim_oc_channel_config,TIM_PWM_CH_2);
 	HAL_TIM_PWM_ConfigChannel(&htim2,&tim_oc_channel_config,TIM_PWM_CH_3);
 }

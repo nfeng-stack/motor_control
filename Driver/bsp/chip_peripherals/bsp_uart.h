@@ -16,6 +16,6 @@ void bsp_uart3_init(void);
 void bsp_uart1_init(void);
 uint8_t usart1_read(uint8_t *is_success);
 void uart1_send_byte(char *ch);
-
+void bsp_usart1_register_rx_it_callback(void (*callback)(void));
 
 #endif

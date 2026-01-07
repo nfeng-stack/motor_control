@@ -9,7 +9,7 @@ SZ = arm-none-eabi-size
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 
-DEBUG_ENABLE := 1
+DEBUG_ENABLE := 0
 
 
 #编译参数

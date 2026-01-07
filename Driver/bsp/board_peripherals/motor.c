@@ -103,4 +103,6 @@ void Motor_Init(void)
 {
 	bsp_motor_gpio_init();
 	pwm_tim2_init();
+	MotoerB_set_speed(800);
+    MotorA_set_speed(990);
 }	
